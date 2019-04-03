@@ -1,0 +1,2 @@
+POST /blog-posts returns status 200 instead of the expected 201
+PUT for blogs and authors appear not to work, but this could be an issue with the PUT methods implemented

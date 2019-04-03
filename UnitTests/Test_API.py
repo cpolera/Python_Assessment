@@ -3,7 +3,7 @@ import requests
 import json
 import datetime
 
-class Assessment(unittest.TestCase):
+class Test_API(unittest.TestCase):
     http = "https://"
     page = "imagequix-qa-interview2"
     domain = ".herokuapp.com"
@@ -12,7 +12,6 @@ class Assessment(unittest.TestCase):
     authors = "/authors"
     authorPostDict = {"firstName": "", "lastName": ""}
     blogPostDict = {"title":"", "body":"", "authorId":"", "publishDate":""}
-
 
     ##BLOGS
     ##test get all
@@ -30,8 +29,7 @@ class Assessment(unittest.TestCase):
     def test_POST_Blog(self):
         blogParams = ["Some title", "Polera", 1, datetime.datetime.now().isoformat()]
         statusCode = self.POST_Blog(blogParams)
-        self.assertEqual(str(statusCode), "<Response [200]>", "The POST resulted in code: " + str(statusCode))
-
+        self.assertEqual(str(statusCode), "<Response [201]>", "The POST resulted in code: " + str(statusCode))
 
     ##test put blog
     def test_PUT_Blog(self):
@@ -43,7 +41,6 @@ class Assessment(unittest.TestCase):
         respPut  = self.PUT_Blog(blogPutParam, id)
         testJson = self.GET_Wrapper(self.url+self.blog_posts + "/" + str(id))
         self.assertEqual(testJson["title"], blogPutParam["title"], "Title was not updated")
-
 
     ##test delete blog
     def test_DELETE_Blog(self):
@@ -70,28 +67,28 @@ class Assessment(unittest.TestCase):
     def test_POST_Author(self):
         author = ["Cody", "Polera"]
         statusCode = self.POST_Author(author)
+        self.assertEqual(str(statusCode), "<Response [201]>", "The POST resulted in code: " + str(statusCode))
 
     ##test put author
+    def test_PUT_Author(self):
+        authorParams = ["PUT Author", "Polera"]
+        resp = self.POST_Author(authorParams)
+        testJson = json.loads(resp.content)
+        id = testJson["id"]
+        authorPutParams = {"firstName":"PUT Author_P"}
+        respPut = self.PUT_Author(authorPutParams, id)
+        testJson = self.GET_Wrapper(self.url+self.authors + "/" + str(id))
+        self.assertEqual(testJson["firstName"], authorPutParams["firstName"], "First name was not updated")
 
     ##test delete author
-
-
-
-    def test_response_Author(self):
-        resp = requests.get(self.url + self.authors)
+    def test_DELETE_Author(self):
+        authorParams = ["DEL Author", "Polera"]
+        resp = self.POST_Author(authorParams)
         testJson = json.loads(resp.content)
-        print(resp.content)
-        for author in testJson:
-            print(author["id"])
-            for val in author:
-                print(val + ":  " + str(author[val]))
-
-    def test_response_AuthorViaID(self):
-        resp = requests.get(self.url + self.authors + "/1")
-        testJson = json.loads(resp.content)
-        print(resp.content)
-        for val in testJson:
-            print(val + ":  " + str(testJson[val]))
+        id = testJson["id"]
+        self.DELETE_Wrapper(self.url + self.authors + "/" + str(id))
+        respDel = requests.get(self.url + self.authors + "/" + str(id))
+        self.assertTrue(respDel.status_code != "<Response [200]", "Code was not 200")
 
     ##BEFORE TEST
     @classmethod
@@ -100,21 +97,26 @@ class Assessment(unittest.TestCase):
         print("Begin test")
         print("=======================")
 
+
+##=========================================================================
     ##HELPER METHODS
     def POST_Author(self, author):
         newDict = self.authorPostDict.copy()
         for param in newDict:
             newDict[param] = author.pop(0)
-        return self.POST_Wrapper(Assessment.url + self.authors, newDict)
+        return self.POST_Wrapper(Test_API.url + self.authors, newDict)
 
     def POST_Blog(self, blog):
         newDict = self.blogPostDict.copy()
         for param in newDict:
             newDict[param] = blog.pop(0)
-        return self.POST_Wrapper(Assessment.url + self.blog_posts, newDict)
+        return self.POST_Wrapper(Test_API.url + self.blog_posts, newDict)
 
     def PUT_Blog(self, params, id):
-        return self.PUT_Wrapper(Assessment.url + self.blog_posts + "/" + str(id), params)
+        return self.PUT_Wrapper(Test_API.url + self.blog_posts + "/" + str(id), params)
+
+    def PUT_Author(self, params, id):
+        return self.PUT_Wrapper(Test_API.url + self.authors + "/" + str(id), params)
 
     def POST_Wrapper(self, url, dict):
         resp = requests.post(url, json=dict)
