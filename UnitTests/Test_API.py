@@ -128,7 +128,7 @@ class Test_API(unittest.TestCase):
         return json.loads(resp.content)
 
     def PUT_Wrapper(self, url, dict):
-        return requests.put(url, dict)
+        return requests.put(url, json=dict)
 
     def DELETE_Wrapper(self, url):
         return requests.delete(url)
