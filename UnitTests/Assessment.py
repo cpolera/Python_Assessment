@@ -13,33 +13,65 @@ class Assessment(unittest.TestCase):
     authorPostDict = {"firstName": "", "lastName": ""}
     blogPostDict = {"title":"", "body":"", "authorId":"", "publishDate":""}
 
-    def createAuthor(self):
-        author = ["Cody", "Polera"]
-        newDict = self.authorPostDict.copy()
-        for param in newDict:
-            newDict[param] = author.pop(0)
-        resp = requests.post(Assessment.url+self.authors, newDict)
-        print(resp.content)
 
-    def createBlogPost(self):
-        blog = ["Some title", "Polera", 2001, datetime.datetime.now().isoformat()
-]
-        newDict = self.blogPostDict.copy()
-        for param in newDict:
-            newDict[param] = blog.pop(0)
-        resp = requests.post(Assessment.url + self.blog_posts, json=newDict)
-        print(resp.content)
+    ##BLOGS
+    ##test get all
+    def test_GET_All_Blogs(self):
+        None
 
-    def putBlog(self):
-        blog = {"id":1000}
+    ##test get one id
+    def test_GET_Blog_ID(self):
+        expectedId =1000
+        testJson = self.GET_Wrapper(self.url + self.blog_posts + "/" + str(expectedId))
+        print(testJson["id"])
+        self.assertEqual(testJson["id"], expectedId, "Id: " + str(testJson["id"]) + " did not match expected ID: "+ str(expectedId))
 
-    def test_response(self):
-        resp = requests.get(self.url + self.blog_posts)
-        expectedId =939
+    ##test post blog
+    def test_POST_Blog(self):
+        blogParams = ["Some title", "Polera", 1, datetime.datetime.now().isoformat()]
+        statusCode = self.POST_Blog(blogParams)
+        self.assertEqual(str(statusCode), "<Response [200]>", "The POST resulted in code: " + str(statusCode))
+
+
+    ##test put blog
+    def test_PUT_Blog(self):
+        blogParams = ["PUT BLOG", "Polera", 1, datetime.datetime.now().isoformat()]
+        resp = self.POST_Blog(blogParams)
         testJson = json.loads(resp.content)
-        print(resp.content)
-        print(testJson[0]["id"])
-        self.assertEqual(testJson[0]["id"], expectedId, "Id: " + str(testJson[0]["id"]) + " did not match expected ID: "+ str(expectedId))
+        id = testJson["id"]
+        blogPutParam = {"title":"PUT BLOG_P"}
+        respPut  = self.PUT_Blog(blogPutParam, id)
+        testJson = self.GET_Wrapper(self.url+self.blog_posts + "/" + str(id))
+        self.assertEqual(testJson["title"], blogPutParam["title"], "Title was not updated")
+
+
+    ##test delete blog
+    def test_DELETE_Blog(self):
+        blogParams = ["DEL BLOG", "Polera", 1, datetime.datetime.now().isoformat()]
+        resp = self.POST_Blog(blogParams)
+        testJson = json.loads(resp.content)
+        id = testJson["id"]
+
+
+    ##AUTHORS
+    ##test get all authors
+
+    ##test get one author
+    def test_GET_Author_ID(self):
+        expectedId =1
+        testJson = self.GET_Wrapper(self.url + self.authors + "/" + str(expectedId))
+        print("Author Id: " + str(testJson["id"]))
+        self.assertEqual(testJson["id"], expectedId, "Id: " + str(testJson["id"]) + " did not match expected ID: "+ str(expectedId))
+
+    ##test post author
+    def test_POST_Author(self):
+        author = ["Cody", "Polera"]
+        statusCode = self.POST_Author(author)
+
+    ##test put author
+
+    ##test delete author
+
 
 
     def test_response_Author(self):
@@ -58,13 +90,43 @@ class Assessment(unittest.TestCase):
         for val in testJson:
             print(val + ":  " + str(testJson[val]))
 
+    ##BEFORE TEST
     @classmethod
     def setUp(self):
         print("=======================")
         print("Begin test")
         print("=======================")
-        self.createBlogPost(self)
 
+    ##HELPER METHODS
+    def POST_Author(self, author):
+        newDict = self.authorPostDict.copy()
+        for param in newDict:
+            newDict[param] = author.pop(0)
+        return self.POST_Wrapper(Assessment.url + self.authors, newDict)
+
+    def POST_Blog(self, blog):
+        newDict = self.blogPostDict.copy()
+        for param in newDict:
+            newDict[param] = blog.pop(0)
+        return self.POST_Wrapper(Assessment.url + self.blog_posts, newDict)
+
+    def PUT_Blog(self, params, id):
+        return self.PUT_Wrapper(Assessment.url + self.blog_posts + "/" + str(id), params)
+
+    def POST_Wrapper(self, url, dict):
+        resp = requests.post(url, json=dict)
+        print(resp.content)
+        return resp
+
+    def GET_Wrapper(self, url):
+        resp = requests.get(url)
+        return json.loads(resp.content)
+
+    def PUT_Wrapper(self, url, dict):
+        return requests.put(url, dict)
+
+    def DELETE_Wrapper(self, url, dict):
+        return requests.delete(url, dict)
 
 if __name__ == "__main__":
     unittest.main()
