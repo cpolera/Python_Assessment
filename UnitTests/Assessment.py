@@ -51,6 +51,9 @@ class Assessment(unittest.TestCase):
         resp = self.POST_Blog(blogParams)
         testJson = json.loads(resp.content)
         id = testJson["id"]
+        self.DELETE_Wrapper(self.url + self.blog_posts + "/" + str(id))
+        respDel = requests.get(self.url + self.blog_posts + "/" + str(id))
+        self.assertTrue(respDel.status_code != "<Response [200]", "Code was not 200")
 
 
     ##AUTHORS
@@ -125,8 +128,8 @@ class Assessment(unittest.TestCase):
     def PUT_Wrapper(self, url, dict):
         return requests.put(url, dict)
 
-    def DELETE_Wrapper(self, url, dict):
-        return requests.delete(url, dict)
+    def DELETE_Wrapper(self, url):
+        return requests.delete(url)
 
 if __name__ == "__main__":
     unittest.main()
